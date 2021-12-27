@@ -95,6 +95,19 @@
 //! Ansi color code: `[bold|214]Hello world!` This is a light orange.
 //! Hex color code:  `[#babaf1|u]Hi there!` This is a light blue/purple-ish color.
 //!
+//! # Escaping
+//! 
+//! Escaping is done like with normal formatting braces.
+//! 
+//! ```rust
+//! use fancy::*;
+//! eprintcoln!("[b|r]error[:] at [[{}:{}]][b]: {}", line, column, message);
+//! ```
+//! 
+//! *Note:*
+//! *Currently escaping can only be done one level.*
+//! *`[[escaped]]` will print the same as `[[[[escaped]]]]`*
+//! 
 //! # Examples
 //! 
 //! ```rust

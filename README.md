@@ -17,3 +17,7 @@ All the color formating macros, do normal formatting too.
 use fancy::printcoln;
 printcoln!("[bold]{:x} {:x} [red]world!", 104, 105);
 ```
+
+*Note:*
+Currently escaping can only be done one level.
+`[[escaped]]` will print the same as `[[[[escaped]]]]`
