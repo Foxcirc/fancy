@@ -8,5 +8,3 @@ repository = "https://github.com/Foxcirc/fancy"
 
 [lib]
 proc-macro = true
-
-[dependencies]
