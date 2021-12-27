@@ -197,7 +197,7 @@ pub fn eprintcol(grammar: TokenStream) -> TokenStream {
 }
 
 /// Print a colorized string followed by a newline.
-/// This macro is to [`printcol!`] as `std::println` is to [`print!`].
+/// This macro is to [`printcol!`] as [`println`] is to [`print!`].
 /// For more information see [`printcol!`];
 #[proc_macro]
 pub fn printcoln(grammar: TokenStream) -> TokenStream {
