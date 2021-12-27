@@ -128,6 +128,7 @@
 
 use proc_macro::{TokenStream, Diagnostic, Level, Span};
 use std::ops::Range;
+use std::iter::once;
 
 macro_rules! error {
     ($message:expr) => {
@@ -209,16 +210,29 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
     let mut range = Range { start: 0, end: 0 };
     let mut brackets = 0;
 
-    let mut formats = Range { start: 0, end: text.len() };
+    let mut formats = Range { start: 0, end: text.chars().count() };
 
     if !text.starts_with("\"") { error!("First argument must be a string literal."); };
+  
+    // let text = text.replace("[[", "\x1b[14m").replace("]]", "\x1b15m");
 
-    for (idx, chr) in text.char_indices() {
+    let third = |num| once('"').chain(text.chars().skip(num)/* .enumerate().filter(|(i, _)| i % 3 == 0).map(|(_, v)| { v }) */);
+    let mut chrs1 = third(0);
+    let mut chrs2 = third(1);
+    let mut chrs3 = third(2);
+    let mut chrsi = text.chars().enumerate().map(|v| v.0 );
+
+    loop {
+
+        let idx = match chrsi.next()  { Some(v) => v, None => break, };
+        let last = match chrs1.next() { Some(v) => v, None => break, };
+        let curr = match chrs2.next() { Some(v) => v, None => break, };
+        let next = match chrs3.next() { Some(v) => v, None => '\0', }; 
+
+        if curr == '[' && last != '[' && next != '[' && brackets == 0 { range.start = idx + 1; brackets += 1 }
+        else if curr == '[' && last != '[' && next != '[' && brackets != 0 { error!("Cannot color-format inside a pattern.", idx); }
         
-        if chr == '[' && brackets == 0 { range.start = idx + 1; brackets += 1 }
-        else if chr == '[' && brackets != 0 { error!("Cannot color-format inside a pattern.", idx); }
-        
-        else if chr == ']' && brackets > 0 {
+        else if curr == ']' && last != ']' && brackets > 0 {
             brackets -= 1;
             range.end = idx;
             if parse(&text[range.clone()], &mut colored) == false {
@@ -226,12 +240,15 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
             };
         }
         
-        else if chr == ']' && brackets == 0 { error!("Unmatched ']' in color format sequence.", idx); }
+        else if curr == ']' && last != ']' && next != ']' && brackets == 0 { error!("Unmatched ']' in color format sequence.", idx); }
 
-        else if chr == '"' && idx == 0 { }
-        else if chr == '"' && idx != 0 { formats.start = idx + 1; break }
+        else if curr == '[' && next == '[' {  }
+        else if curr == ']' && next == ']' {  }
 
-        else if brackets == 0 && chr != '\0' { colored.push(chr) };
+        else if curr == '"' && idx == 0 {  }
+        else if curr == '"' && idx != 0 { formats.start = idx + 1; break }
+
+        else if brackets == 0 && curr != '\0' { colored.push(curr) };
 
     }
     
@@ -240,9 +257,11 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
     colored.raw("\x1b[0m");
     let output = colored.view();
 
+    // let output = output.replace("\x1b[14m", "[[").replace("\x1b[15m", "]]");
+
     if formats.is_empty() {
 
-        return format!{
+        format!{
             "\"{}\"",
             output,
         }.parse().expect("Could not parse output.")
