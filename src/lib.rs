@@ -279,17 +279,17 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
 
     if formats.is_empty() {
 
-        format!{
+        format!(
             "\"{}\"",
             output,
-        }.parse().expect("Could not parse output.")
+        ).parse().expect("Could not parse output.")
         
     } else {
 
-        return format!{
+        return format!(
             "format!(\"{}\"{})",
             output, &text[formats]
-        }.parse().expect("Could not parse output.")
+        ).parse().expect("Could not parse output.")
         
     }
 

@@ -4,6 +4,9 @@ use fancy::*;
 #[test]
 fn format() {
 
+    let msg = colorize!("[b]Hi [u]there!");
+    println!("{}", msg);
+
     printcoln!("[bold|magenta]Hello world!");
     printcoln!("[bold|cyan]Hello world[magenta]!");
     printcoln!("[b|#7cd615]space[#c1973c]space!"); // purple/orange "spacespace"
