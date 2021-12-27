@@ -1,0 +1,12 @@
+[package]
+name = "fancy"
+version = "0.1.2"
+edition = "2021"
+authors = ["foxcirc"]
+description = "Easily print string with color."
+repository = "https://github.com/Foxcirc/fancy"
+
+[lib]
+proc-macro = true
+
+[dependencies]
