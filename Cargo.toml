@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["foxcirc"]
 description = "Easily print string with color."
 repository = "https://github.com/Foxcirc/fancy"
+license = "MIT"
 
 [lib]
 proc-macro = true
