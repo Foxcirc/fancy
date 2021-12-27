@@ -137,27 +137,32 @@
 //! coloring string shouldn't impact the runtime performance.
 //! 
 
-#![feature(proc_macro_diagnostic)]
+// #![feature(proc_macro_diagnostic)]
 
-use proc_macro::{TokenStream, Diagnostic, Level, Span};
+use proc_macro::{TokenStream/* , Diagnostic, Level, Span */};
 use std::ops::Range;
 use std::iter::once;
 
 macro_rules! error {
     ($message:expr) => {
-        Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
-        return "\"\"".parse().unwrap();
+        panic!($message);
+        // Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
+        // return "\"\"".parse().unwrap();
     };
     ($message:expr, $idx:ident) => {
-        Diagnostic::spanned(Span::call_site(), Level::Error, format!("At index {}: {}", $idx,$message)).emit();
-        return "\"\"".parse().unwrap();
+        
+        panic!("{}", format!("At index {}: {}", $idx, $message));
+        // Diagnostic::spanned(Span::call_site(), Level::Error, format!("At index {}: {}", $idx,$message)).emit();
+        // return "\"\"".parse().unwrap();
     };
     ($message:expr;) => {
-        Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
+        
+        // Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
     };
 }
 
-/// Print a colorized string.
+
+ /// Print a colorized string.
 /// 
 /// This macro can be used like [`print!`] and accepts format arguments.
 /// Just like for [`print!`] there are versions for this macro that append a newline and/or print to stderr.
@@ -181,14 +186,14 @@ macro_rules! error {
 /// For more information see the crate level documentation;
 #[proc_macro]
 pub fn printcol(grammar: TokenStream) -> TokenStream {
-    format!(r#"::std::print!("{{}}", fancy::colorize!({}));"#, grammar.to_string()).parse().unwrap()
+    format!(r#"::std::print!("{{}}", ::fancy::colorize!({}));"#, grammar.to_string()).parse().unwrap()
 }
 
 /// Print a colorized string to stderr.
 /// For more information see [`printcol!`];
 #[proc_macro]
 pub fn eprintcol(grammar: TokenStream) -> TokenStream {
-    format!(r#"::std::eprint!("{{}}", fancy::colorize!({}));"#, grammar.to_string()).parse().unwrap()
+    format!(r#"::std::eprint!("{{}}", ::fancy::colorize!({}));"#, grammar.to_string()).parse().unwrap()
 }
 
 /// Print a colorized string followed by a newline.
@@ -204,7 +209,7 @@ pub fn printcoln(grammar: TokenStream) -> TokenStream {
 /// For more information see [`printcol!`];
 #[proc_macro]
 pub fn eprintcoln(grammar: TokenStream) -> TokenStream {
-    format!("::fancy::eprintcol!(\"{}\n\");", grammar.to_string()).parse().unwrap()
+    format!("::fancy::eprintcol!({}); ::std::println!()", grammar.to_string()).parse().unwrap()
 }
 
 /// Colorize and format a string.
@@ -363,14 +368,14 @@ fn parse(text: &str, buffer: &mut ColorString) -> bool {
                 // ansi color id background
                 else if (4..).contains(&seq.len()) && (&seq[0..=1] == "?" && isdec(&seq[1..])) | isdec(&seq[..]) {
                                     
-                    Diagnostic::spanned(
-                        Span::call_site(),
-                        Level::Error,
-                        format!("Invalid ansi color code: {}", seq))
-                        .note("Ansi color codes must be in range 0..255.")
-                        .emit();
-                    
-                    return false;
+                    // Diagnostic::spanned(
+                    //     Span::call_site(),
+                    //     Level::Error,
+                    //     format!("Invalid ansi color code: {}", seq))
+                    //     .note("Ansi color codes must be in range 0..255.")
+                    //     .emit();
+                        // todo actually check for the ranges of the color code (0.255)
+                    panic!("Invalid ansi color code: {}. Ansi color codes must be in range 0.155.", seq);
 
                 }
                 
@@ -393,14 +398,16 @@ fn parse(text: &str, buffer: &mut ColorString) -> bool {
                 // invalid hex color code 
                 else if (2..).contains(&seq.len()) && (&seq[0..=1]).contains('#') {
                     
-                    Diagnostic::spanned(
-                        Span::call_site(),
-                        Level::Error,
-                        format!("Invalid hex color code: {}", seq))
-                        .note("Hex color codes must be a '#' or '?#' followed by exactly 6 hex-digits.")
-                        .emit();
+                    // Diagnostic::spanned(
+                    //     Span::call_site(),
+                    //     Level::Error,
+                    //     format!("Invalid hex color code: {}", seq))
+                    //     .note("Hex color codes must be a '#' or '?#' followed by exactly 6 hex-digits.")
+                    //     .emit();
                     
-                    return false;
+                    panic!("Invalid hex color code: {}. Hex color codes must be a '#' or '?#' followed by exactly 6 hex-digits.", seq);
+                    
+                    // return false;
 
                 }
                 
