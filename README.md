@@ -18,6 +18,9 @@ use fancy::printcoln;
 printcoln!("[bold]{:x} {:x} [red]world!", 104, 105);
 ```
 
+Results could look like this:
+![Colored Text](https://imgur.com/a/GoPlhaR "Colored Text")
+
 *Note:*
 Currently escaping can only be done one level.
 `[[escaped]]` will print the same as `[[[[escaped]]]]`
