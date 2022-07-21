@@ -22,5 +22,7 @@ fn format() {
     printcoln!("[b|blue]Hi!");
 
     printcoln!("[u|red]error[:]: invalid keyword \"data\"");
+    eprintcoln!("[b|r]error[:] at [[{}:{}]][b]: {}", 60, 24, "invalid token");
+
 
 }

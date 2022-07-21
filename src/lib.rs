@@ -222,11 +222,8 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
         // update the variable
         parsing.0 = braces > 0 && escaped == 0;
 
-        // handle the escaping
-        if chr == '[' && prev == '[' { escaped += 1; braces = 0 }
-        else if chr == ']' && prev == ']' { escaped += 1; braces = 0 }
-        
-        else if chr != '[' && prev == '[' && escaped > 0 {
+        // handle end-of-escaped sequences seperatly
+        if chr != '[' && prev == '[' && escaped > 0 {
             for br in repeat('[').take(escaped) { colored.push(br) };
             escaped = 0;
         }
@@ -234,6 +231,10 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
             for br in repeat(']').take(escaped) { colored.push(br) };
             escaped = 0;
         }
+
+        // handle the escaping
+        if chr == '[' && prev == '[' { escaped += 1; braces = 0 }
+        else if chr == ']' && prev == ']' { escaped += 1; braces = 0 }
         
         // handle the patterns (else-if is important here)
         else if chr == '[' {
@@ -282,6 +283,8 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
     // append a reset character, so that all color styles are reset
     colored.raw("\x1b[0m");
     let output = colored.view();
+
+    eprintln!("{output}");
 
     if formats.is_empty() {
 
