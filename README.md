@@ -18,8 +18,7 @@ use fancy::printcoln;
 printcoln!("[bold]{:x} {:x} [red]world!", 104, 105);
 ```
 
-Results could look like this:
-![Screenshot](doc/screenshot.png?raw=true "FancyText")
+![Screenshot](doc/example.png?raw=true "FancyText")
 
 Note that not every console supports all features this crate offers.
 Some consoles like windows command prompt need you to enable support first and
