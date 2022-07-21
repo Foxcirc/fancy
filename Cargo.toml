@@ -4,6 +4,7 @@ version = "0.3.0"
 edition = "2021"
 authors = ["foxcirc"]
 description = "Easily print colored text."
+keywords = ["colorize", "color", "ansi", "text", "string"]
 repository = "https://github.com/Foxcirc/fancy"
 license = "MIT"
 documentation = "https://docs.rs/fancy/latest/fancy/"
