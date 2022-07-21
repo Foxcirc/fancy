@@ -24,3 +24,16 @@ Note that not every console supports all features this crate offers.
 Some consoles like windows command prompt need you to enable support first and
 even then some default colors might not render correctly, depending on the color
 palette.
+
+If you have any issues, you can tell me on github or via mail.
+I Hope this crate is usefull and functional for you :)
+
+# Changes
+
+## 0.2.3 -> 0.3.0
+- fixed a bug, where a string containing an escaped double quote would not parse correctly
+- fixed escaping of square brackets, they can now be escaped correctly
+- partially rewrote the parsing
+
+## 0.1.2 -> 0.2.3
+- minor bug, documentation and stability fixes
