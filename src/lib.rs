@@ -134,33 +134,11 @@
 //! in my opinion it is a bit easier to write and read.
 //! 
 //! Since this crate uses a procedural macro for generating the color sequences,
-//! coloring string shouldn't impact the runtime performance.
+//! coloring shouldn't impact the runtime performance.
 //! 
 
-// #![feature(proc_macro_diagnostic)]
-
 use proc_macro::{TokenStream/* , Diagnostic, Level, Span */};
-use std::ops::Range;
-use std::iter::once;
-
-macro_rules! error {
-    ($message:expr) => {
-        panic!($message);
-        // Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
-        // return "\"\"".parse().unwrap();
-    };
-    ($message:expr, $idx:ident) => {
-        
-        panic!("{}", format!("At index {}: {}", $idx, $message));
-        // Diagnostic::spanned(Span::call_site(), Level::Error, format!("At index {}: {}", $idx,$message)).emit();
-        // return "\"\"".parse().unwrap();
-    };
-    ($message:expr;) => {
-        
-        // Diagnostic::spanned(Span::call_site(), Level::Error, $message).emit();
-    };
-}
-
+use std::{ops::Range, iter::repeat};
 
  /// Print a colorized string.
 /// 
@@ -222,59 +200,92 @@ pub fn eprintcoln(grammar: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn colorize(grammar: TokenStream) -> TokenStream {
 
+    // get the input data
     let text = grammar.to_string();
     let mut colored = ColorString::new(text.capacity());
+    let len = text.chars().count();
 
-    let mut range = Range { start: 0, end: 0 };
-    let mut brackets = 0;
+    // the start and end of the format args section of the data
+    // eg. colorize!("{} world!", "hello")
+    //                          ^--------^
+    let mut formats = 0..len;
 
-    let mut formats = Range { start: 0, end: text.chars().count() };
+    // brace matching
+    // += 1 for [
+    // -= 1 for ]
+    let mut braces: isize = 0;
+    // incremented by one for each escaping brace
+    // eg. [[[[ => escaped = 3
+    let mut escaped = 0;
 
-    if !text.starts_with("\"") { error!("First argument must be a string literal."); };
-  
-    // let text = text.replace("[[", "\x1b[14m").replace("]]", "\x1b15m");
+    let mut parsing = (false, 0..0);
 
-    let third = |num| once('"').chain(text.chars().skip(num)/* .enumerate().filter(|(i, _)| i % 3 == 0).map(|(_, v)| { v }) */);
-    let mut chrs1 = third(0);
-    let mut chrs2 = third(1);
-    let mut chrs3 = third(2);
-    let mut chrsi = text.chars().enumerate().map(|v| v.0 );
+    let mut prev = '\0';
+    for (idx, chr) in text.chars().enumerate() {
 
-    loop {
+        // update the variable
+        parsing.0 = braces > 0 && escaped == 0;
 
-        let idx = match chrsi.next()  { Some(v) => v, None => break, };
-        let last = match chrs1.next() { Some(v) => v, None => break, };
-        let curr = match chrs2.next() { Some(v) => v, None => break, };
-        let next = match chrs3.next() { Some(v) => v, None => '\0', }; 
-
-        if curr == '[' && last != '[' && next != '[' && brackets == 0 { range.start = idx + 1; brackets += 1 }
-        else if curr == '[' && last != '[' && next != '[' && brackets != 0 { error!("Cannot color-format inside a pattern.", idx); }
+        // handle the escaping
+        if chr == '[' && prev == '[' { escaped += 1; braces = 0 }
+        else if chr == ']' && prev == ']' { escaped += 1; braces = 0 }
         
+        else if chr != '[' && prev == '[' && escaped > 0 {
+            for br in repeat('[').take(escaped) { colored.push(br) };
+            escaped = 0;
+        }
+        else if chr != ']' && prev == ']' && escaped > 0 {
+            for br in repeat(']').take(escaped) { colored.push(br) };
+            escaped = 0;
+        }
+        
+        // handle the patterns (else-if is important here)
+        else if chr == '[' {
+            if parsing.0 { panic!("cannot have a opening square brace inside a pattern") }
+            braces += 1;
+            parsing.1.start = idx + 1;
+        }
+        else if chr == ']' && parsing.0 && braces == 1 {
+            braces -= 1;
+            // the pattern is closed with this char
+            // parse now:
+            parsing.1.end = idx;
+            parse(&text[parsing.1.clone()], &mut colored);
+        }
+        else if chr == ']' {
+            
+        }
+
         // if this is the end of the string literal, we make the format argument section
         // start here
         else if chr == '"' && prev != '\\' && idx != 0 {
             formats.start = idx + 1;
             break
         }
-        
-        else if curr == ']' && last != ']' && next != ']' && brackets == 0 { error!("Unmatched ']' in color format sequence.", idx); }
 
-        else if curr == '[' && next == '[' {  }
-        else if curr == ']' && next == ']' {  }
+        // ignore the first "
+        else if chr == '"' && idx == 0 {}
 
-        else if curr == '"' && idx == 0 {  }
-        else if curr == '"' && idx != 0 { formats.start = idx + 1; break }
+        // push other char's onto the string
+        else if !parsing.0 {
+            colored.push(chr);
+        }
 
-        else if brackets == 0 && curr != '\0' { colored.push(curr) };
+        // else {
+        //     panic!("unhandeled char case: chr = {chr:?}, prev = {prev:?}, pasing = {parsing:?}, braces = {braces:?}, escaped = {escaped:?}")
+        // }
+
+        prev = chr;
 
     }
-    
-    if brackets > 0 { error!("Unclosed '[' in color format sequence."); };
 
+    if braces != 0 {
+        panic!("braces did not match, you either have to many `[` or to many `]`")
+    }
+
+    // append a reset character, so that all color styles are reset
     colored.raw("\x1b[0m");
     let output = colored.view();
-
-    // let output = output.replace("\x1b[14m", "[[").replace("\x1b[15m", "]]");
 
     if formats.is_empty() {
 
@@ -285,6 +296,8 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
         
     } else {
 
+        // formats eg. colorize!("{}[green]hey!", "John says ")
+        //                                      ^------------^
         return format!(
             "format!(\"{}\"{})",
             output, &text[formats]
@@ -322,15 +335,15 @@ fn parse(text: &str, buffer: &mut ColorString) -> bool {
             // "bright" | "br"   => buffer.add("1"),
             
             // foreground colors
-            "black"           => buffer.add("30"),
-            "red"             => buffer.add("31"),
-            "green"           => buffer.add("32"),
-            "yellow"          => buffer.add("33"),
-            "blue"            => buffer.add("34"),
-            "magenta"         => buffer.add("35"),
-            "cyan"            => buffer.add("36"),
-            "white"           => buffer.add("37"),
-            "default" | "def" => buffer.add("39"),
+            "black"                 => buffer.add("30"),
+            "red"                   => buffer.add("31"),
+            "green"                 => buffer.add("32"),
+            "yellow"                => buffer.add("33"),
+            "blue"                  => buffer.add("34"),
+            "magenta"               => buffer.add("35"),
+            "cyan"                  => buffer.add("36"),
+            "white"                 => buffer.add("37"),
+            "default" | "def" | "r" => buffer.add("39"),
             
             // background colors
             "?black"            => buffer.add("40"),
@@ -411,10 +424,7 @@ fn parse(text: &str, buffer: &mut ColorString) -> bool {
                 }
                 
                 else if !seq.is_empty() {
-                    
-                    error!(format!("Unknown modifier: {:?}", seq););
-                    return false;
-
+                    panic!("{}", format!("Unknown modifier: {:?}", seq));
                 }
 
             },
