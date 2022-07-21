@@ -24,7 +24,3 @@ Note that not every console supports all features this crate offers.
 Some consoles like windows command prompt need you to enable support first and
 even then some default colors might not render correctly, depending on the color
 palette.
-
-*Note:*
-Currently escaping can only be done one level.
-`[[escaped]]` will print the same as `[[[[escaped]]]]`

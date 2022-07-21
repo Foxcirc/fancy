@@ -104,10 +104,6 @@
 //! eprintcoln!("[b|r]error[:] at [[{}:{}]][b]: {}", line, column, message);
 //! ```
 //! 
-//! *Note:*
-//! *Currently escaping can only be done one level.*
-//! *`[[escaped]]` will print the same as `[[[[escaped]]]]`*
-//! 
 //! # Examples
 //! 
 //! ```rust
