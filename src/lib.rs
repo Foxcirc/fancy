@@ -250,12 +250,11 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
         if curr == '[' && last != '[' && next != '[' && brackets == 0 { range.start = idx + 1; brackets += 1 }
         else if curr == '[' && last != '[' && next != '[' && brackets != 0 { error!("Cannot color-format inside a pattern.", idx); }
         
-        else if curr == ']' && last != ']' && brackets > 0 {
-            brackets -= 1;
-            range.end = idx;
-            if parse(&text[range.clone()], &mut colored) == false {
-                return "\"\"".parse().unwrap();
-            };
+        // if this is the end of the string literal, we make the format argument section
+        // start here
+        else if chr == '"' && prev != '\\' && idx != 0 {
+            formats.start = idx + 1;
+            break
         }
         
         else if curr == ']' && last != ']' && next != ']' && brackets == 0 { error!("Unmatched ']' in color format sequence.", idx); }
