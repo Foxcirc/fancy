@@ -284,8 +284,6 @@ pub fn colorize(grammar: TokenStream) -> TokenStream {
     colored.raw("\x1b[0m");
     let output = colored.view();
 
-    eprintln!("{output}");
-
     if formats.is_empty() {
 
         format!(
