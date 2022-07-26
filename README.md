@@ -30,6 +30,10 @@ I Hope this crate is usefull and functional for you :)
 
 # Changes
 
+## 0.3.0 -> 0.3.1
+- removed left over eprintln during evaluation of the proc-macro
+- (how did i not see that)
+
 ## 0.2.3 -> 0.3.0
 - fixed a bug, where a string containing an escaped double quote would not parse correctly
 - fixed escaping of square brackets, they can now be escaped correctly
